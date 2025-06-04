@@ -1,0 +1,102 @@
+let price = 19.5;
+let cid = [
+  ['PENNY', 1.01],
+  ['NICKEL', 2.05],
+  ['DIME', 3.1],
+  ['QUARTER', 4.25],
+  ['ONE', 90],
+  ['FIVE', 55],
+  ['TEN', 20],
+  ['TWENTY', 60],
+  ['ONE HUNDRED', 100]
+];
+
+const displayChange = document.getElementById("change-due");
+const input = document.getElementById("cash");
+const button = document.getElementById("purchase-btn");
+
+const getChange = (cash) =>{
+  let changeArr = [];
+  let change = parseFloat((cash - price).toFixed(2));
+
+  const amounts = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
+
+  const label = ["ONE HUNDRED", "TWENTY", "TEN", "FIVE", "ONE", "QUARTER", "DIME", "NICKEL", "PENNY"];
+
+  const drawer = Object.fromEntries(cid.map(pair => [pair[0], pair[1]]));
+
+  let totalInDrawer = Object.values(drawer).reduce((a, b) => a + b, 0);
+
+  totalInDrawer = parseFloat(totalInDrawer.toFixed(2));
+
+  if (totalInDrawer < change){
+    displayChange.textContent = "Status: INSUFFICIENT_FUNDS"
+    return;
+  }
+  
+for (let i = 0; i < amounts.length; i++){
+
+  let used = 0;
+  while(change >= amounts[i] && drawer[label[i]] > 0){
+
+    drawer[label[i]] = parseFloat((drawer[label[i]] - amounts[i]).toFixed(2));
+    change = parseFloat((change - amounts[i]).toFixed(2));
+    used = parseFloat((used + amounts[i]).toFixed(2));
+  }
+
+  if(used > 0){
+    changeArr.push([label[i], used]);
+   
+  }
+}
+if(change > 0){
+  displayChange.textContent = "Status: INSUFFICIENT_FUNDS";
+    return null;
+}
+
+
+let remainingTotal = Object.values(drawer).reduce((a, b) => a + b, 0);
+remainingTotal = parseFloat(remainingTotal.toFixed(2));
+
+const status = remainingTotal === 0 ? "CLOSED" : "OPEN";
+
+
+
+  return { status, changeArr };
+
+
+};
+
+
+
+
+button.addEventListener("click", () =>{
+  if(Number(input.value) < price){
+    alert("Customer does not have enough money to purchase the item");
+    return;
+  }
+  else if (Number(input.value) === price){
+      displayChange.textContent = "No change due - customer paid with exact cash";
+      return;
+  }
+  const result = getChange(Number(input.value));
+
+  if(!result) return;
+
+  const {status, changeArr} = result;
+
+  if (status === "CLOSED") {
+    displayChange.innerHTML = "Status: CLOSED<br>" + changeArr.map(
+      ([label, amt]) => `${label}: $${amt.toFixed(2)}`
+    ).join("<br>");
+  } else {
+    displayChange.innerHTML = "Status: <b>OPEN</b><br><br>" + changeArr.map(
+      ([label, amt]) => `<b>${label}</b>: $${amt.toFixed(2)}`
+    ).join("<br>");
+  }
+
+ 
+
+});
+
+
